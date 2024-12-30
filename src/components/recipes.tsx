@@ -1,38 +1,27 @@
 'use client';
 
+import { fetchRecipes } from '@/app/fetch-recipes/action';
 import { useState } from 'react';
+import { useFormState } from 'react-dom';
 
 export default function Recipes() {
   const [ingredients, setIngredients] = useState<string>('');
   const [recipes, setRecipes] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const fetchRecipes = async () => { //server action tarafına taşınıcak
+  const [formState, formAction] = useFormState(
+    async () => await fetchRecipes(ingredients),
+    undefined
+  );
+
+  if (formState?.pending) {
     setLoading(true);
-    setRecipes(null);
-    try {
-      const response = await fetch('/api/recipes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ingredients: ingredients.split(',').map((i) => i.trim()) }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch recipes');
-      }
-
-      const data = await response.json();
-      setRecipes(data.recipes);
-    } catch (error) {
-      console.error(error);
-      setRecipes('Error fetching recipes.');
-    } finally {
-      setLoading(false);
-    }
-  };
+  } else {
+    setLoading(false);
+  }
 
   return (
-    <div className="p-6">
+    <form className="p-6" action={formAction}>
       <h1 className="text-2xl font-bold">Recipe Suggestions</h1>
       <textarea
         value={ingredients}
@@ -42,7 +31,6 @@ export default function Recipes() {
         className="w-full p-2 border rounded-md mt-4"
       />
       <button
-        onClick={fetchRecipes}
         disabled={loading}
         className="bg-blue-500 text-white px-4 py-2 rounded-md mt-4 hover:bg-blue-600 disabled:opacity-50"
       >
@@ -54,6 +42,6 @@ export default function Recipes() {
           <p className="whitespace-pre-wrap mt-2">{recipes}</p>
         </div>
       )}
-    </div>
+    </form>
   );
 }
