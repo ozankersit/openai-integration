@@ -19,7 +19,7 @@ export async function POST(request: Request) {
   try {
     const prompt = `I have the following ingredients: ${ingredients.join(
       ", "
-    )}. What recipes can I make with these? Provide a short list with simple instructions.`;
+    )}. What recipes can I make with these? Provide a short list with simple instructions.Please provide a list of recipes as a JSON array.`;
 
     const response = await openai.chat.completions.create({
       model: "gpt-4o-mini",
@@ -28,7 +28,7 @@ export async function POST(request: Request) {
         { role: "user", content: prompt },
       ],
       response_format: {
-        type: "text",
+        type: "json_object",
       },
       temperature: 1,
       max_completion_tokens: 2048,
@@ -38,7 +38,14 @@ export async function POST(request: Request) {
     });
 
     const recipes = response.choices[0]?.message?.content;
-    return NextResponse.json({ recipes }, { status: 200 });
+    if (!recipes) {
+      return NextResponse.json(
+        { error: "No recipes were generate." },
+        { status: 500 }
+      );
+    }
+    const result = JSON.parse(recipes);
+    return NextResponse.json({ recipes:result }, { status: 200 });
   } catch (error) {
     console.error(error);
     return NextResponse.json(

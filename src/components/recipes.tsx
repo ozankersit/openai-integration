@@ -1,25 +1,31 @@
-'use client';
+"use client";
 
-import { useState, useTransition } from 'react';
-import { fetchRecipes } from '@/app/fetch-recipes/action';
+type RecipesModel = {
+  name: string;
+  instructions: string[];
+};
+
+import { useState, useTransition } from "react";
+import { fetchRecipes } from "@/app/fetch-recipes/action";
 
 export default function Recipes() {
-  const [ingredients, setIngredients] = useState<string>('');
-  const [recipes, setRecipes] = useState<string | null>(null);
+  const [ingredients, setIngredients] = useState<string>("");
+  const [recipes, setRecipes] = useState<RecipesModel[] | null>(null);
   const [isPending, startTransition] = useTransition();
 
   const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault(); // Formun default davranışını engelleyin.
+    e.preventDefault();
     startTransition(async () => {
       const response = await fetchRecipes(ingredients);
       if (response.success) {
-        setRecipes(response.message); // Başarılı durumda tarifleri ayarla.
+        setRecipes(response.message.recipes);
       } else {
-        setRecipes(response.message); // Hata mesajını göster.
+        setRecipes(response.message);
       }
     });
   };
 
+  console.log("ozan", recipes);
   return (
     <form className="p-6" onSubmit={handleSubmit}>
       <h1 className="text-2xl font-bold">Recipe Suggestions</h1>
@@ -36,14 +42,22 @@ export default function Recipes() {
         disabled={isPending}
         className="bg-blue-500 text-white px-4 py-2 rounded-md mt-4 hover:bg-blue-600 disabled:opacity-50"
       >
-        {isPending ? 'Fetching...' : 'Get Recipes'}
+        {isPending ? "Fetching..." : "Get Recipes"}
       </button>
-      {recipes && (
-        <div className="mt-6">
-          <h2 className="text-xl font-semibold">Recipes:</h2>
-          <p className="whitespace-pre-wrap mt-2">{recipes}</p>
-        </div>
-      )}
+      <div className="grid lg:grid-cols-3 grid-cols-1 gap-5 mt-4">
+        {recipes ?
+        recipes.map((recipe, index) => (
+          <div key={index} className="border rounded-md p-2">
+            <div className="font-bold">{recipe.name}</div>
+            <div className="font-bold list-decimal">
+              {recipe.instructions.map((instruction, index) => (
+                <li key={index}>{instruction}</li>
+              ))}
+            </div>
+          </div>
+        )) : null}
+      </div>
+      
     </form>
   );
 }
