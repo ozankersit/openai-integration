@@ -1,22 +1,14 @@
 import { NextResponse } from "next/server";
 import { OpenAI } from "openai";
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
 export async function POST(request: Request) {
-  const body = await request.json();
-  const { ingredients } = body;
-
-  if (!ingredients || !Array.isArray(ingredients)) {
-    return NextResponse.json(
-      { error: "Invalid ingredients format" },
-      { status: 400 }
-    );
-  }
-
+  const openai = new OpenAI({
+    apiKey: process.env.OPENAI_API_KEY,
+  });
   try {
+    const body = await request.json();
+    const { ingredients } = body;
+
     const prompt = `I have the following ingredients: ${ingredients.join(
       ", "
     )}. What recipes can I make with these? Provide a short list with simple instructions.Please provide a list of recipes as a JSON array.`;
@@ -30,11 +22,8 @@ export async function POST(request: Request) {
       response_format: {
         type: "json_object",
       },
-      temperature: 1,
-      max_completion_tokens: 2048,
-      top_p: 1,
-      frequency_penalty: 0,
-      presence_penalty: 0,
+      temperature: 0.7,
+      max_tokens: 2000,
     });
 
     const recipes = response.choices[0]?.message?.content;
