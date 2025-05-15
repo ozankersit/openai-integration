@@ -25,7 +25,6 @@ export default function Recipes() {
     });
   };
 
-  console.log("ozan", recipes);
   return (
     <form className="p-6" onSubmit={handleSubmit}>
       <h1 className="text-2xl font-bold">Recipe Suggestions</h1>
